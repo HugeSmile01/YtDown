@@ -1,6 +1,6 @@
 # YtDown - Free YouTube Downloader 🎬🎵
 
-A free, secure, and easy-to-use YouTube downloader built with HTML, Tailwind CSS, and JavaScript. Download your favorite YouTube videos and music with just a few clicks!
+A free, secure, and easy-to-use YouTube downloader built with HTML, custom CSS, and JavaScript. Download your favorite YouTube videos and music with just a few clicks!
 
 ## 🎥 Live Demo
 
