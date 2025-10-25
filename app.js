@@ -152,7 +152,7 @@ async function fetchVideoInfo() {
             displayVideoInfo(currentVideoData);
             
             // Show warning about limited functionality
-            showError('⚠️ Download API is currently unavailable. Video information displayed using fallback mode. Downloads may not work.');
+            showError('⚠️ Download API is currently unavailable. Video information displayed using fallback mode. Downloads are not available.');
         } catch (fallbackError) {
             console.error('Fallback error:', fallbackError);
             showError('Unable to fetch video information. The download API is currently unavailable. Please try again later or check the URL.');
