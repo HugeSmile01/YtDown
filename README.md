@@ -75,38 +75,21 @@ The application automatically tries each endpoint in order until one works. If a
 
 ### Setting Up Your Own API Instance
 
-If you want to host your own YouTube download API:
+For detailed instructions on setting up your own API instance, see the [API Setup Guide](API_SETUP.md).
 
-1. Clone the API repository:
-   ```bash
-   git clone https://github.com/MatheusIshiyama/youtube-download-api.git
-   cd youtube-download-api
-   ```
+**Quick Start:**
+1. Clone the [youtube-download-api](https://github.com/MatheusIshiyama/youtube-download-api) repository
+2. Install dependencies with `npm install`
+3. Run with `npm start`
+4. Update `app.js` to use your API endpoint
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Run the API server:
-   ```bash
-   npm start
-   ```
-
-4. Update `app.js` to use your API endpoint:
-   ```javascript
-   const API_ENDPOINTS = [
-       'http://localhost:3500',  // Your local or hosted API
-       // ... other fallback endpoints
-   ];
-   ```
-
-You can deploy your API instance to platforms like:
-- **Render** (https://render.com) - Free tier available
+**Deployment Options:**
+- **Render** (https://render.com) - Free tier with auto-sleep
 - **Railway** (https://railway.app) - Free tier available
 - **Vercel** (https://vercel.com) - Serverless functions
-- **Heroku** (https://heroku.com) - Free tier available
-- **Replit** (https://replit.com) - Free hosting
+- **Heroku** (https://heroku.com) - Container-based hosting
+
+See [API_SETUP.md](API_SETUP.md) for complete deployment instructions for each platform.
 
 ## 🎯 Key Features Explained
 
