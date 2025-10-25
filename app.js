@@ -2,9 +2,15 @@
 let currentVideoData = null;
 let selectedFormat = 'video';
 
-// API Configuration
-const API_BASE_URL = 'https://youtube-download-api-7jxd.onrender.com'; // Fallback API endpoint
-// Alternative APIs can be used if the primary one is down
+// API Configuration with multiple fallback endpoints
+const API_ENDPOINTS = [
+    'https://youtube-download-api.matheusishiyama.repl.co', // Official endpoint
+    'https://youtube-download-api-7jxd.onrender.com',      // Render deployment
+    'https://yt-download-api.vercel.app',                  // Vercel deployment (if available)
+];
+
+let currentApiIndex = 0;
+let API_BASE_URL = API_ENDPOINTS[0];
 
 // Utility function to extract video ID from YouTube URL
 function extractVideoId(url) {
@@ -58,6 +64,22 @@ function formatDuration(seconds) {
     return `${minutes}:${String(secs).padStart(2, '0')}`;
 }
 
+// Try different API endpoints with fallback
+async function tryApiEndpoint(endpoint, urlPath, url) {
+    const response = await fetch(`${endpoint}${urlPath}?url=${encodeURIComponent(url)}`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json'
+        }
+    });
+    
+    if (!response.ok) {
+        throw new Error(`API returned status ${response.status}`);
+    }
+    
+    return response.json();
+}
+
 // Fetch video information
 async function fetchVideoInfo() {
     const urlInput = document.getElementById('videoUrl');
@@ -80,29 +102,40 @@ async function fetchVideoInfo() {
     hideElement('errorMessage');
     showElement('loadingSpinner');
     
-    try {
-        // Try to fetch video info using the API
-        const response = await fetch(`${API_BASE_URL}/video/info?url=${encodeURIComponent(url)}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to fetch video information');
+    let apiWorked = false;
+    
+    // Try each API endpoint
+    for (let i = 0; i < API_ENDPOINTS.length && !apiWorked; i++) {
+        try {
+            const apiEndpoint = API_ENDPOINTS[i];
+            console.log(`Trying API: ${apiEndpoint}`);
+            
+            // Try with /info endpoint (original API structure)
+            const data = await tryApiEndpoint(apiEndpoint, '/info', url);
+            
+            // Success! Update the current API index and base URL
+            currentApiIndex = i;
+            API_BASE_URL = apiEndpoint;
+            
+            currentVideoData = {
+                videoId: videoId,
+                title: data.title,
+                author: data.author || data.channel || 'Unknown Channel',
+                thumbnail: data.thumbnail,
+                duration: data.duration || data.lengthSeconds || 'Unknown'
+            };
+            
+            displayVideoInfo(currentVideoData);
+            apiWorked = true;
+            
+        } catch (error) {
+            console.error(`Error with API ${API_ENDPOINTS[i]}:`, error);
+            // Continue to next API endpoint
         }
-        
-        const data = await response.json();
-        currentVideoData = data;
-        
-        // Display video information
-        displayVideoInfo(data);
-        
-    } catch (error) {
-        console.error('Error fetching video info:', error);
-        
-        // Fallback: Use YouTube oEmbed API for basic info
+    }
+    
+    // If no API worked, try YouTube oEmbed as fallback
+    if (!apiWorked) {
         try {
             const oEmbedResponse = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
             const oEmbedData = await oEmbedResponse.json();
@@ -112,13 +145,17 @@ async function fetchVideoInfo() {
                 title: oEmbedData.title,
                 author: oEmbedData.author_name,
                 thumbnail: oEmbedData.thumbnail_url,
-                duration: 'Unknown'
+                duration: 'Unknown',
+                fallbackMode: true  // Flag to indicate we're in fallback mode
             };
             
             displayVideoInfo(currentVideoData);
+            
+            // Show warning about limited functionality
+            showError('⚠️ Download API is currently unavailable. Video information displayed using fallback mode. Downloads may not work.');
         } catch (fallbackError) {
             console.error('Fallback error:', fallbackError);
-            showError('Unable to fetch video information. Please check the URL and try again.');
+            showError('Unable to fetch video information. The download API is currently unavailable. Please try again later or check the URL.');
             hideElement('loadingSpinner');
         }
     }
@@ -196,6 +233,12 @@ async function downloadVideo() {
         return;
     }
     
+    // Check if we're in fallback mode
+    if (currentVideoData.fallbackMode) {
+        showError('⚠️ Download functionality is currently unavailable. The YouTube download API is not accessible. Please try again later.');
+        return;
+    }
+    
     const downloadBtn = document.getElementById('downloadBtn');
     const originalText = downloadBtn.innerHTML;
     
@@ -206,24 +249,24 @@ async function downloadVideo() {
         
         const videoId = currentVideoData.videoId || extractVideoId(document.getElementById('videoUrl').value);
         const quality = document.getElementById('qualitySelect').value;
+        const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
         
         let downloadUrl;
         
+        // Use the correct API endpoint structure based on the original API
         if (selectedFormat === 'audio') {
-            // Audio download - construct URL safely
-            const safeVideoId = encodeURIComponent(videoId);
-            downloadUrl = `${API_BASE_URL}/video/audio?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
+            // Use /mp3 endpoint for audio
+            downloadUrl = `${API_BASE_URL}/mp3?url=${encodeURIComponent(youtubeUrl)}`;
         } else {
-            // Video download with quality - construct URL safely
-            const safeVideoId = encodeURIComponent(videoId);
-            const safeQuality = encodeURIComponent(quality);
-            downloadUrl = `${API_BASE_URL}/video/download?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&quality=${safeQuality}`;
+            // Use /mp4 endpoint for video
+            downloadUrl = `${API_BASE_URL}/mp4?url=${encodeURIComponent(youtubeUrl)}`;
         }
         
-        // Validate that downloadUrl is from the expected API domain
+        // Validate that downloadUrl is from an expected API domain
         try {
             const url = new URL(downloadUrl);
-            if (url.origin !== new URL(API_BASE_URL).origin) {
+            const validDomains = API_ENDPOINTS.map(endpoint => new URL(endpoint).origin);
+            if (!validDomains.includes(url.origin)) {
                 throw new Error('Invalid download URL');
             }
         } catch (error) {
@@ -260,7 +303,7 @@ async function downloadVideo() {
         
     } catch (error) {
         console.error('Download error:', error);
-        showError('Download failed. Please try again or use a different quality.');
+        showError('Download failed. The API might be temporarily unavailable. Please try again later.');
         downloadBtn.innerHTML = originalText;
         downloadBtn.disabled = false;
     }

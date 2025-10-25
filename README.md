@@ -56,17 +56,57 @@ npx http-server -p 8080
 This project integrates with the [youtube-download-api](https://github.com/MatheusIshiyama/youtube-download-api) to handle video processing and downloads.
 
 ### API Endpoints Used:
-- `GET /video/info?url={youtube_url}` - Fetch video information
-- `GET /video/download?url={youtube_url}&quality={quality}` - Download video
-- `GET /video/audio?url={youtube_url}` - Download audio
+- `GET /info?url={youtube_url}` - Fetch video information
+- `GET /mp4?url={youtube_url}` - Download video as MP4
+- `GET /mp3?url={youtube_url}` - Download audio as MP3
 
 ### API Configuration
-The default API endpoint is configured in `app.js`:
+
+The application uses multiple fallback API endpoints configured in `app.js`:
 ```javascript
-const API_BASE_URL = 'https://youtube-download-api-7jxd.onrender.com';
+const API_ENDPOINTS = [
+    'https://youtube-download-api.matheusishiyama.repl.co', // Official endpoint
+    'https://youtube-download-api-7jxd.onrender.com',      // Render deployment
+    'https://yt-download-api.vercel.app',                  // Vercel deployment
+];
 ```
 
-You can change this to use a different API instance if needed.
+The application automatically tries each endpoint in order until one works. If all APIs are unavailable, it falls back to YouTube's oEmbed API for basic video information (downloads will not be available in this mode).
+
+### Setting Up Your Own API Instance
+
+If you want to host your own YouTube download API:
+
+1. Clone the API repository:
+   ```bash
+   git clone https://github.com/MatheusIshiyama/youtube-download-api.git
+   cd youtube-download-api
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Run the API server:
+   ```bash
+   npm start
+   ```
+
+4. Update `app.js` to use your API endpoint:
+   ```javascript
+   const API_ENDPOINTS = [
+       'http://localhost:3500',  // Your local or hosted API
+       // ... other fallback endpoints
+   ];
+   ```
+
+You can deploy your API instance to platforms like:
+- **Render** (https://render.com) - Free tier available
+- **Railway** (https://railway.app) - Free tier available
+- **Vercel** (https://vercel.com) - Serverless functions
+- **Heroku** (https://heroku.com) - Free tier available
+- **Replit** (https://replit.com) - Free hosting
 
 ## 🎯 Key Features Explained
 
