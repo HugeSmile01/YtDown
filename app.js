@@ -128,14 +128,25 @@ async function fetchVideoInfo() {
 function displayVideoInfo(data) {
     hideElement('loadingSpinner');
     
-    // Update thumbnail
-    const thumbnail = data.thumbnail || data.thumbnails?.[0]?.url || `https://img.youtube.com/vi/${data.videoId}/maxresdefault.jpg`;
-    document.getElementById('videoThumbnail').src = thumbnail;
+    // Update thumbnail - validate and sanitize URL
+    // Sanitize videoId to only allow valid YouTube video ID characters (alphanumeric, -, _)
+    const safeVideoId = String(data.videoId || '').replace(/[^a-zA-Z0-9_-]/g, '');
+    let thumbnail = data.thumbnail || data.thumbnails?.[0]?.url || `https://img.youtube.com/vi/${safeVideoId}/maxresdefault.jpg`;
     
-    // Update title
+    // Ensure thumbnail URL is from trusted YouTube domains
+    if (thumbnail && (thumbnail.startsWith('https://i.ytimg.com/') || 
+                       thumbnail.startsWith('https://img.youtube.com/') ||
+                       thumbnail.startsWith('https://i9.ytimg.com/'))) {
+        document.getElementById('videoThumbnail').src = thumbnail;
+    } else {
+        // Fallback to default thumbnail with sanitized videoId
+        document.getElementById('videoThumbnail').src = `https://img.youtube.com/vi/${safeVideoId}/maxresdefault.jpg`;
+    }
+    
+    // Update title - use textContent to prevent XSS
     document.getElementById('videoTitle').textContent = data.title || 'Unknown Title';
     
-    // Update channel
+    // Update channel - use textContent to prevent XSS
     document.getElementById('videoChannel').textContent = data.author || data.channel || 'Unknown Channel';
     
     // Update duration
@@ -199,18 +210,38 @@ async function downloadVideo() {
         let downloadUrl;
         
         if (selectedFormat === 'audio') {
-            // Audio download
-            downloadUrl = `${API_BASE_URL}/video/audio?url=https://www.youtube.com/watch?v=${videoId}`;
+            // Audio download - construct URL safely
+            const safeVideoId = encodeURIComponent(videoId);
+            downloadUrl = `${API_BASE_URL}/video/audio?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}`;
         } else {
-            // Video download with quality
-            downloadUrl = `${API_BASE_URL}/video/download?url=https://www.youtube.com/watch?v=${videoId}&quality=${quality}`;
+            // Video download with quality - construct URL safely
+            const safeVideoId = encodeURIComponent(videoId);
+            const safeQuality = encodeURIComponent(quality);
+            downloadUrl = `${API_BASE_URL}/video/download?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&quality=${safeQuality}`;
+        }
+        
+        // Validate that downloadUrl is from the expected API domain
+        try {
+            const url = new URL(downloadUrl);
+            if (url.origin !== new URL(API_BASE_URL).origin) {
+                throw new Error('Invalid download URL');
+            }
+        } catch (error) {
+            console.error('Download URL validation failed:', error);
+            showError('Invalid download request. Please try again.');
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+            return;
         }
         
         // Create a temporary link and trigger download
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = `${currentVideoData.title || 'video'}.${selectedFormat === 'audio' ? 'mp3' : 'mp4'}`;
+        // Sanitize filename to prevent directory traversal
+        const safeTitle = (currentVideoData.title || 'video').replace(/[^a-zA-Z0-9-_ ]/g, '_');
+        link.download = `${safeTitle}.${selectedFormat === 'audio' ? 'mp3' : 'mp4'}`;
         link.target = '_blank';
+        link.rel = 'noopener noreferrer'; // Security best practice
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
