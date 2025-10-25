@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Demo of YtDown - Free and secure YouTube downloader">
+    <title>YtDown Demo - YouTube Downloader</title>
+    <link rel="stylesheet" href="demo-styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>▶ YtDown - Demo</h1>
+            <p class="subtitle">See what the download interface looks like!</p>
+        </div>
+
+        <!-- Demo Card -->
+        <div class="card">
+            <div class="demo-label">📺 DEMO MODE - Example Video Loaded</div>
+            
+            <!-- URL Input (disabled in demo) -->
+            <div class="mb-6">
+                <label class="label">🔗 YouTube URL</label>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        value="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                        disabled
+                        class="input-disabled"
+                    >
+                    <button class="btn-primary" disabled>🔍 Fetch Info</button>
+                </div>
+            </div>
+
+            <!-- Video Info Section -->
+            <div class="video-info-card">
+                <div class="video-info-flex">
+                    <div class="thumbnail-wrapper">
+                        <img 
+                            src="https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg" 
+                            alt="Video thumbnail" 
+                            class="video-thumbnail"
+                        >
+                    </div>
+                    <div class="video-details">
+                        <h2 class="video-title">Rick Astley - Never Gonna Give You Up (Official Video)</h2>
+                        <div class="video-meta">
+                            <p>👤 <span class="font-bold">Rick Astley</span></p>
+                            <p>⏱ <span class="font-bold">3:32</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Download Options -->
+            <div class="download-section">
+                <h3 class="section-title">⬇ Download Options</h3>
+                
+                <!-- Format Selection -->
+                <div class="format-grid">
+                    <button class="format-btn active-video">
+                        <div class="format-icon">🎬</div>
+                        <p class="format-title">Video (MP4)</p>
+                        <p class="format-desc">Download with video and audio</p>
+                    </button>
+                    <button class="format-btn">
+                        <div class="format-icon">🎵</div>
+                        <p class="format-title">Audio (MP3)</p>
+                        <p class="format-desc">Download audio only</p>
+                    </button>
+                </div>
+
+                <!-- Quality Selection -->
+                <div class="quality-section">
+                    <label class="label">⚙ Quality</label>
+                    <select class="select">
+                        <option>Highest Quality</option>
+                        <option>1080p HD</option>
+                        <option selected>720p HD</option>
+                        <option>480p</option>
+                        <option>360p</option>
+                        <option>Lowest Quality (smallest file)</option>
+                    </select>
+                </div>
+
+                <!-- Download Button -->
+                <button class="btn-success">
+                    ⬇ Download Now
+                </button>
+                
+                <p class="demo-note">
+                    ℹ️ This is a demo. Use the main <a href="index.html">index.html</a> for actual downloads.
+                </p>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card">
+            <h3 class="section-title">📖 How to Use</h3>
+            <ol class="instructions">
+                <li>Open <code>index.html</code> in your browser</li>
+                <li>Paste any YouTube video URL</li>
+                <li>Click "Fetch Info" or press Enter</li>
+                <li>Choose Video or Audio format</li>
+                <li>Select your preferred quality</li>
+                <li>Click "Download Now"</li>
+            </ol>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>❤ Made with love for YouTube lovers</p>
+            <p>ℹ For personal use only. Respect copyright laws.</p>
+        </div>
+    </div>
+</body>
+</html>
